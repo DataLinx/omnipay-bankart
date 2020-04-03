@@ -1,8 +1,11 @@
 <?php
 namespace Omnipay\Bankart\Message;
 
-use Omnipay\Bankart\e24PaymentPipe;
+use Omnipay\Bankart\Customer;
 use Omnipay\Common\Exception\RuntimeException;
+use PaymentGateway\Client\Client as BankartClient;
+use PaymentGateway\Client\Transaction\Preauthorize as BankartPreauthorize;
+use PaymentGateway\Client\Transaction\Result as BankartResult;
 
 class AuthorizeRequest extends AbstractRequest
 {
@@ -28,7 +31,7 @@ class AuthorizeRequest extends AbstractRequest
 	}
 
 	/**
-	 * Return URL for failed transactions
+	 * Set URL for failed transactions
 	 *
 	 * @param string $value
 	 * @return $this
@@ -48,6 +51,27 @@ class AuthorizeRequest extends AbstractRequest
 		return $this->getParameter('errorUrl');
 	}
 
+    /**
+     * Set customer
+     *
+     * @param Customer $customer
+     * @return $this
+     */
+	public function setCustomer(Customer $customer)
+    {
+        return $this->setParameter('customer', $customer);
+    }
+
+    /**
+     * Get customer
+     *
+     * @return Customer
+     */
+    public function getCustomer()
+    {
+        return $this->getParameter('customer');
+    }
+
 	/**
 	 * Get request data
 	 *
@@ -59,16 +83,36 @@ class AuthorizeRequest extends AbstractRequest
 			'amount',
 			'currency',
 			'language',
+			'returnUrl',
 			'notifyUrl',
-			'errorUrl'
+			'errorUrl',
+            'cancelUrl',
+            'transactionId',
+            'description',
+            'customer'
 		);
+
+		// Validate required Customer data
+		$this->getCustomer()->validate(
+		    'firstName',
+            'lastName',
+            'identification',
+            'billingCountry',
+            'email',
+            'ipAddress'
+        );
 
         return parent::getData() + [
 			'amount' => $this->getAmount(),
 			'currency' => $this->getCurrency(),
 			'language' => $this->getLanguage(),
+            'returnUrl' => $this->getReturnUrl(),
 			'notifyUrl' => $this->getNotifyUrl(),
 			'errorUrl' => $this->getErrorUrl(),
+            'cancelUrl' => $this->getCancelUrl(),
+            'transactionId' => $this->getTransactionId(),
+            'description' => $this->getDescription(),
+            'customer' => $this->getCustomer()->getData(),
 		];
     }
 
@@ -81,27 +125,32 @@ class AuthorizeRequest extends AbstractRequest
 	 */
 	public function sendData($data)
 	{
-		$paymentPipe = new e24PaymentPipe;
-		$paymentPipe->setResourcePath($this->getResourcePath());
-		$paymentPipe->setAlias($this->getTerminalAlias());
-		$paymentPipe->setAction(4);
-		$paymentPipe->setAmt($this->getAmount());
-		$paymentPipe->setCurrency($this->getCurrency());
-		$paymentPipe->setLanguage($this->getLanguage());
-		$paymentPipe->setResponseURL($this->getNotifyUrl());
-		$paymentPipe->setErrorURL($this->getErrorUrl());
-		$paymentPipe->setTrackId(md5(uniqid()));
+        $client = new BankartClient($this->getUsername(), $this->getPassword(), $this->getApiKey(), $this->getSharedSecret(), $this->getLanguage());
 
-		if ($paymentPipe->performPaymentInitialization() != $paymentPipe->SUCCESS)
-		{
-			throw new RuntimeException('Payment Pipe initializaton error - '. $paymentPipe->getErrorMsg());
-		}
+        $preauth = new BankartPreauthorize();
+        $preauth->setTransactionId($this->getTransactionId())
+            ->setAmount($this->getAmount())
+            ->setCurrency($this->getCurrency())
+            ->setDescription($this->getDescription())
+            ->setSuccessUrl($this->getReturnUrl())
+            ->setCancelUrl($this->getCancelUrl())
+            ->setErrorUrl($this->getErrorUrl())
+            ->setCallbackUrl($this->getNotifyUrl())
+            ->setCustomer($this->getCustomer());
 
-		$this->response = new AuthorizeResponse($this, [
-			'transactionReference' => $paymentPipe->getPaymentId(),
-			'redirectUrl' => $paymentPipe->getPaymentPage() . '?PaymentID='. $paymentPipe->getPaymentId(),
-		]);
+        $result = $client->preauthorize($preauth);
 
-		return $this->response;
+        switch ($result->getReturnType())
+        {
+            case BankartResult::RETURN_TYPE_REDIRECT:
+                $this->response = new AuthorizeResponse($this, [], $result);
+                return $this->response;
+
+            case BankartResult::RETURN_TYPE_ERROR:
+                throw new RuntimeException('Payment initialization error: '. $this->serializeErrors($result->getErrors()));
+
+            default:
+                throw new RuntimeException('Payment initialization error - unexpected return type: '. $result->getReturnType());
+        }
 	}
 }

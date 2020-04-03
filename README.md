@@ -1,6 +1,6 @@
 # Omnipay: Bankart
 
-**Bankart driver for the Omnipay PHP payment processing library**
+**Bankart v2 (2020) driver for the Omnipay PHP payment processing library**
 
 [Omnipay](https://github.com/thephpleague/omnipay) is a framework agnostic, multi-gateway payment
 processing library for PHP 5.3+. This package implements Dummy support for Omnipay.
@@ -36,22 +36,28 @@ repository.
 * Authorization
 * Capture
 * Void
+* Refund
 
 ## Available languages
-To select a language for the Hosted Payment Page, pass the "language" parameter to the Authorization or Purchase requests:
+To select a language for the Hosted Payment Page, pass the "language" parameter to the Authorization requests:
 
-* BS - Bosnian
-* CZ - Czech
-* DE - German
-* ESP - Spanish
-* HR - Croatian
-* HU - Hungarian
-* IT - Italian
-* RUS - Russian
-* SI - Slovenian
-* SVK - Slovakian
-* SR - Serbian
-* US - English
+* sl (Slovenian)
+* en (English)
+* de (German)
+* me (Montenegrin)
+* mk (Macedonian)
+
+## Test cards
+
+* 4111 1111 1111 1111 - Visa (succeeds)
+* 4242 4242 4242 4242 - Visa (fails)
+* 5555 5555 5555 4444 - Mastercard (succeeds)
+* 5105 1051 0510 5100 - Mastercard (fails)
+
+## Reference
+* [Bankart backoffice](https://gateway.bankart.si/)
+* [Bankart Gateway documentation](https://gateway.bankart.si/documentation/gateway)
+* [API reference](https://gateway.bankart.si/documentation/api)
 
 ## Support
 

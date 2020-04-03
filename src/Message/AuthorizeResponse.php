@@ -1,7 +1,6 @@
 <?php
 namespace Omnipay\Bankart\Message;
 
-use Omnipay\Common\Message\AbstractResponse;
 use Omnipay\Common\Message\RedirectResponseInterface;
 
 /**
@@ -56,7 +55,7 @@ class AuthorizeResponse extends AbstractResponse implements RedirectResponseInte
      */
 	public function getRedirectUrl()
 	{
-		return $this->data['redirectUrl'];
+		return $this->bankartResult->getRedirectUrl();
 	}
 
 	/**
@@ -66,6 +65,6 @@ class AuthorizeResponse extends AbstractResponse implements RedirectResponseInte
 	 */
 	public function getTransactionReference()
     {
-        return $this->data['transactionReference'];
+        return $this->bankartResult->getReferenceId();
     }
 }
