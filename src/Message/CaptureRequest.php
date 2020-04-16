@@ -1,74 +1,12 @@
 <?php
 namespace Omnipay\Bankart\Message;
 
-use Omnipay\Bankart\e24PaymentPipe;
 use Omnipay\Common\Exception\RuntimeException;
+use PaymentGateway\Client\Client as BankartClient;
+use PaymentGateway\Client\Transaction\Capture as BankartCapture;
 
-class CaptureRequest extends AbstractRequest {
-
-	/**
-	 * Set transaction reference (Bankart Payment ID)
-	 *
-	 * @param string $value
-	 * @return $this
-	 */
-	public function setTransactionReference($value)
-	{
-		return $this->setParameter('transactionReference', $value);
-	}
-
-	/**
-	 * Get transaction reference (Bankart Payment ID)
-	 *
-	 * @return string
-	 */
-	public function getTransactionReference()
-	{
-		return $this->getParameter('transactionReference');
-	}
-
-	/**
-	 * Set tranId
-	 *
-	 * @param string $value
-	 * @return $this
-	 */
-	public function setTranId($value)
-	{
-		return $this->setParameter('tranId', $value);
-	}
-
-	/**
-	 * Get tranId
-	 *
-	 * @return string
-	 */
-	public function getTranId()
-	{
-		return $this->getParameter('tranId');
-	}
-
-	/**
-	 * Set trackId
-	 *
-	 * @param string $value
-	 * @return $this
-	 */
-	public function setTrackId($value)
-	{
-		return $this->setParameter('trackId', $value);
-	}
-
-	/**
-	 * Get trackId
-	 *
-	 * @return string
-	 */
-	public function getTrackId()
-	{
-		return $this->getParameter('trackId');
-	}
-
+class CaptureRequest extends AbstractRequest
+{
 	/**
 	 * Get request data
 	 *
@@ -77,17 +15,17 @@ class CaptureRequest extends AbstractRequest {
     public function getData()
     {
 		$this->validate(
+		    'transactionId',
 			'amount',
-			'transactionReference',
-			'tranId',
-			'trackId'
+			'currency',
+			'transactionReference'
 		);
 
         return parent::getData() + [
+            'transactionId' => $this->getTransactionId(),
 			'amount' => $this->getAmount(),
+            'currency' => $this->getCurrency(),
 			'transactionReference' => $this->getTransactionReference(),
-			'tranId' => $this->getTranId(),
-			'trackId' => $this->getTrackId(),
 		];
     }
 
@@ -100,22 +38,16 @@ class CaptureRequest extends AbstractRequest {
 	 */
 	public function sendData($data)
 	{
-		$paymentPipe = new e24PaymentPipe;
-		$paymentPipe->setResourcePath($this->getResourcePath());
-		$paymentPipe->setAlias($this->getTerminalAlias());
-		$paymentPipe->setAction(5);
-		$paymentPipe->setAmt($this->getAmount());
+	    $client = new BankartClient($this->getUsername(), $this->getPassword(), $this->getApiKey(), $this->getSharedSecret());
 
-		$paymentPipe->setPaymentId($this->getTransactionReference());
-		$paymentPipe->setTranId($this->getTranId());
-		$paymentPipe->setTrackId($this->getTrackId());
+        $capture = new BankartCapture();
+        $capture->setTransactionId($this->getTransactionId())
+            ->setAmount($this->getAmount())
+            ->setCurrency($this->getCurrency())
+            ->setReferenceTransactionId($this->getTransactionReference());
 
-		$status = $paymentPipe->performPayment();
+        $this->response = new CaptureResponse($this, [], $client->capture($capture));
 
-		$this->response = new CaptureResponse($this, [
-			'status' => ($status != $paymentPipe->SUCCESS) ? CaptureResponse::STATUS_NOT_CAPTURED : CaptureResponse::STATUS_CAPTURED,
-		]);
-
-		return $this->response;
+        return $this->response;
 	}
 }

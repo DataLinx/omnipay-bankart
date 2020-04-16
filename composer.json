@@ -1,7 +1,7 @@
 {
     "name": "datalinx/omnipay-bankart",
     "type": "library",
-    "description": "Bankart driver for the Omnipay payment processing library",
+    "description": "Bankart v2 (2020) driver for the Omnipay payment processing library",
     "keywords": [
         "bankart",
         "gateway",
@@ -10,7 +10,7 @@
         "pay",
         "payment"
     ],
-    "homepage": "https://github.com/datalinx/omnipay-saferpay",
+    "homepage": "https://github.com/datalinx/omnipay-bankart",
     "license": "MIT",
     "authors": [
         {
@@ -18,15 +18,16 @@
             "email": "omer.sabic@gmail.com"
         },
         {
-            "name": "Omnipay Contributors",
-            "homepage": "https://github.com/datalinx/omnipay-saferpay/contributors"
+            "name": "Omnipay Bankart Contributors",
+            "homepage": "https://github.com/datalinx/omnipay-bankart/contributors"
         }
     ],
     "autoload": {
         "psr-4": { "Omnipay\\Bankart\\" : "src/" }
     },
     "require": {
-        "omnipay/common": "~2.0"
+        "omnipay/common": "~2.0",
+        "datalinx/pgc-php-client": "@dev"
     },
     "require-dev": {
         "omnipay/tests": "~2.0",
@@ -36,5 +37,11 @@
         "branch-alias": {
             "dev-master": "2.0.x-dev"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/datalinx/PHPPaymentGateway"
+        }
+    ]
 }

@@ -1,74 +1,12 @@
 <?php
 namespace Omnipay\Bankart\Message;
 
-use Omnipay\Bankart\e24PaymentPipe;
 use Omnipay\Common\Exception\RuntimeException;
+use PaymentGateway\Client\Client as BankartClient;
+use PaymentGateway\Client\Transaction\VoidTransaction;
 
-class VoidRequest extends AbstractRequest {
-
-	/**
-	 * Set transaction reference (Bankart Payment ID)
-	 *
-	 * @param string $value
-	 * @return $this
-	 */
-	public function setTransactionReference($value)
-	{
-		return $this->setParameter('transactionReference', $value);
-	}
-
-	/**
-	 * Get transaction reference (Bankart Payment ID)
-	 *
-	 * @return string
-	 */
-	public function getTransactionReference()
-	{
-		return $this->getParameter('transactionReference');
-	}
-
-	/**
-	 * Set tranId
-	 *
-	 * @param string $value
-	 * @return $this
-	 */
-	public function setTranId($value)
-	{
-		return $this->setParameter('tranId', $value);
-	}
-
-	/**
-	 * Get tranId
-	 *
-	 * @return string
-	 */
-	public function getTranId()
-	{
-		return $this->getParameter('tranId');
-	}
-
-	/**
-	 * Set trackId
-	 *
-	 * @param string $value
-	 * @return $this
-	 */
-	public function setTrackId($value)
-	{
-		return $this->setParameter('trackId', $value);
-	}
-
-	/**
-	 * Get trackId
-	 *
-	 * @return string
-	 */
-	public function getTrackId()
-	{
-		return $this->getParameter('trackId');
-	}
-
+class VoidRequest extends AbstractRequest
+{
 	/**
 	 * Get request data
 	 *
@@ -77,17 +15,13 @@ class VoidRequest extends AbstractRequest {
     public function getData()
     {
 		$this->validate(
-			'amount',
-			'transactionReference',
-			'tranId',
-			'trackId'
+		    'transactionId',
+			'transactionReference'
 		);
 
         return parent::getData() + [
-			'amount' => $this->getAmount(),
+            'transactionId' => $this->getTransactionId(),
 			'transactionReference' => $this->getTransactionReference(),
-			'tranId' => $this->getTranId(),
-			'trackId' => $this->getTrackId(),
 		];
     }
 
@@ -100,22 +34,14 @@ class VoidRequest extends AbstractRequest {
 	 */
 	public function sendData($data)
 	{
-		$paymentPipe = new e24PaymentPipe;
-		$paymentPipe->setResourcePath($this->getResourcePath());
-		$paymentPipe->setAlias($this->getTerminalAlias());
-		$paymentPipe->setAction(9);
-		$paymentPipe->setAmt($this->getAmount());
+        $client = new BankartClient($this->getUsername(), $this->getPassword(), $this->getApiKey(), $this->getSharedSecret());
 
-		$paymentPipe->setPaymentId($this->getTransactionReference());
-		$paymentPipe->setTranId($this->getTranId());
-		$paymentPipe->setTrackId($this->getTrackId());
+        $void = new VoidTransaction();
+        $void->setTransactionId($this->getTransactionId())
+             ->setReferenceTransactionId($this->getTransactionReference());
 
-		$status = $paymentPipe->performPayment();
+        $this->response = new VoidResponse($this, [], $client->void($void));
 
-		$this->response = new VoidResponse($this, [
-			'status' => ($status != $paymentPipe->SUCCESS) ? VoidResponse::STATUS_NOT_VOIDED : VoidResponse::STATUS_VOIDED,
-		]);
-
-		return $this->response;
+        return $this->response;
 	}
 }

@@ -2,7 +2,7 @@
 
 namespace Omnipay\Bankart;
 
-use Omnipay\Common\AbstractGateway;
+use Omnipay\Common\AbstractGateway as AbstractGatewayAlias;
 
 /**
  * Dummy Gateway
@@ -53,7 +53,7 @@ use Omnipay\Common\AbstractGateway;
  * }
  * </code>
  */
-class Gateway extends AbstractGateway
+class Gateway extends AbstractGatewayAlias
 {
     public function getName()
     {
@@ -63,51 +63,95 @@ class Gateway extends AbstractGateway
     public function getDefaultParameters()
     {
         return array(
-			'resourcePath' => '',
-			'terminalAlias' => '',
+            'username' => '',
+            'password' => '',
+            'apiKey' => '',
+            'sharedSecret' => '',
 		);
     }
 
-	/**
-	 * Get resourcePath - location of the resource.cgn file
-	 *
-	 * @return string
-	 */
-	public function getResourcePath()
-	{
-		return $this->getParameter('resourcePath');
-	}
-
-	/**
-	 * Set resource path
-	 *
-	 * @param string $value Path to the resource.cgn file
-	 * @return $this
-	 */
-	public function setResourcePath($value)
-	{
-		return $this->setParameter('resourcePath', $value);
-	}
-
-	/**
-	 * Get Terminal ID
-	 *
-	 * @return string
-	 */
-	public function getTerminalAlias()
+    /**
+     * Set username
+     *
+     * @param string $username
+     * @return Gateway
+     */
+    public function setUsername($username)
     {
-        return $this->getParameter('terminalAlias');
+        return $this->setParameter('username', $username);
     }
 
-	/**
-	 * Set Terminal Alias
-	 *
-	 * @param string $value
-	 * @return $this
-	 */
-	public function setTerminalAlias($value)
+    /**
+     * Get username
+     *
+     * @return string
+     */
+    public function getUsername()
     {
-        return $this->setParameter('terminalAlias', $value);
+        return $this->getParameter('username');
+    }
+
+    /**
+     * Set password
+     *
+     * @param string $password
+     * @return Gateway
+     */
+    public function setPassword($password)
+    {
+        return $this->setParameter('password', $password);
+    }
+
+    /**
+     * Get password
+     *
+     * @return string
+     */
+    public function getPassword()
+    {
+        return $this->getParameter('password');
+    }
+
+    /**
+     * Set API key
+     *
+     * @param string $apiKey
+     * @return Gateway
+     */
+    public function setApiKey($apiKey)
+    {
+        return $this->setParameter('apiKey', $apiKey);
+    }
+
+    /**
+     * Get API key
+     *
+     * @return string
+     */
+    public function getApiKey()
+    {
+        return $this->getParameter('apiKey');
+    }
+
+    /**
+     * Set shared secret
+     *
+     * @param string $sharedSecret
+     * @return Gateway
+     */
+    public function setSharedSecret($sharedSecret)
+    {
+        return $this->setParameter('sharedSecret', $sharedSecret);
+    }
+
+    /**
+     * Get shared secret
+     *
+     * @return string
+     */
+    public function getSharedSecret()
+    {
+        return $this->getParameter('sharedSecret');
     }
 
     /**
@@ -142,4 +186,15 @@ class Gateway extends AbstractGateway
 	{
 		return $this->createRequest('\Omnipay\Bankart\Message\VoidRequest', $parameters);
 	}
+
+    /**
+     * Create a refund request.
+     *
+     * @param array $parameters Parameters
+     * @return \Omnipay\Bankart\Message\RefundRequest
+     */
+	public function refund(array $parameters = array())
+    {
+        return $this->createRequest('\Omnipay\Bankart\Message\RefundRequest', $parameters);
+    }
 }
