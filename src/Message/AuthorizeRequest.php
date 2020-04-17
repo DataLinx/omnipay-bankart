@@ -96,7 +96,6 @@ class AuthorizeRequest extends AbstractRequest
 		$this->getCustomer()->validate(
 		    'firstName',
             'lastName',
-            'identification',
             'billingCountry',
             'email',
             'ipAddress'

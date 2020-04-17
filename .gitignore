@@ -11,3 +11,5 @@ documents/
 .env
 tests/Mock/log/
 tests/storage
+.idea/vcs.xml
+.idea/deployment.xml
